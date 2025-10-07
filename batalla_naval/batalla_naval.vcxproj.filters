@@ -24,9 +24,6 @@
     <ClCompile Include="Board.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Cell.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="PlayerSelectorScreen.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

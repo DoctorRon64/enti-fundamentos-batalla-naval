@@ -9,7 +9,8 @@ PlayerSelectorScreen::PlayerSelectorScreen() {
     uint32_t playerAmount = askPlayerAmount();
 
     for (uint32_t i = 0; i < playerAmount; i++) {
-        //give each player a name
+        //TODO
+        //give each player a name 
         auto player = std::make_shared<Player>();
         players.push_back(player);
     }

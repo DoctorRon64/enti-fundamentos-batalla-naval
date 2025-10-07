@@ -125,7 +125,6 @@
   <ItemGroup>
     <ClCompile Include="batalla_naval.cpp" />
     <ClCompile Include="Board.cpp" />
-    <ClCompile Include="Cell.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="PlayerSelectorScreen.cpp" />
   </ItemGroup>

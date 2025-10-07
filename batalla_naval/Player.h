@@ -7,8 +7,6 @@ public:
 
 	std::shared_ptr<Board> GetBoard();
 private:
-
-
-
+	std::shared_ptr<Board> board;
 };
 
