@@ -124,15 +124,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="batalla_naval.cpp" />
-    <ClCompile Include="Board.cpp" />
-    <ClCompile Include="Player.cpp" />
-    <ClCompile Include="PlayerSelectorScreen.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Board.h" />
-    <ClInclude Include="Cell.h" />
-    <ClInclude Include="Player.h" />
-    <ClInclude Include="PlayerSelectorScreen.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
