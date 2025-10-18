@@ -1,44 +1,58 @@
-﻿#include <iostream>
+﻿/*****************************************************************************************
+ *  Battleship – Console version (C++20)
+ *
+ *  Author          : Philip de Groot
+ *  Date created    : 2025‑10‑18
+ *  Description     : Two‑player console Battleship game.  Boards are 10×10, ships of
+ *                    lengths 3, 4, 5 and 6 are placed randomly.  Players alternate
+ *                    entering row/column coordinates; hits are marked with 'O',
+ *                    misses with 'X'.  The first player to sink all opponent ships
+ *                    wins.
+ *****************************************************************************************/
+
+#include <iostream>
 #include <cstdlib>
 #include <ctime>
 #include <limits>
 #include <string>
 
 int main() {
-	std::cout << "Bienvenido a Batalla naval!" << std::endl;
+	std::cout << "Welcome to Battle Ship!" << std::endl;
 	std::cout << "================================" << std::endl;
 	std::cout << std::endl;
 
 	const int BOARD_SIZE = 10;
 	const int SHIP_COUNT = 4;
-	const char WATER = '~';
-	const char HIT_MARK = 'X';
-	const char MISS_MARK = 'O';
+	const char WATER_CELL = '~';
+	const char HIT_MARK = 'O';
+	const char MISS_MARK = 'X';
+	const int MAX_PLACEMENT_ATTEMPTS = 10000;
 
-	char boardPlayer1[BOARD_SIZE][BOARD_SIZE];
-	char boardPlayer2[BOARD_SIZE][BOARD_SIZE];
-	char visibleBoardPlayer1[BOARD_SIZE][BOARD_SIZE];
-	char visibleBoardPlayer2[BOARD_SIZE][BOARD_SIZE];
+	char hiddenBoardP1[BOARD_SIZE][BOARD_SIZE];
+	char hiddenBoardP2[BOARD_SIZE][BOARD_SIZE];
+	char viewBoardP1[BOARD_SIZE][BOARD_SIZE];
+	char viewBoardP2[BOARD_SIZE][BOARD_SIZE];
 
-	//-----========= Initialize boards ======-----
-	for (int i = 0; i < 10; ++i) {
-		for (int j = 0; j < 10; ++j) {
-			boardPlayer1[i][j] = WATER;
-			boardPlayer2[i][j] = WATER;
-			visibleBoardPlayer1[i][j] = WATER;
-			visibleBoardPlayer2[i][j] = WATER;
+	//--------========= Initialize boards =========--------
+	for (int i = 0; i < BOARD_SIZE; ++i) {
+		for (int j = 0; j < BOARD_SIZE; ++j) {
+			hiddenBoardP1[i][j] = WATER_CELL;
+			hiddenBoardP2[i][j] = WATER_CELL;
+			viewBoardP1[i][j] = WATER_CELL;
+			viewBoardP2[i][j] = WATER_CELL;
 		}
 	}
 
-	//------========== Place Ships ========-------
+	//--------========= Randomly place ships for both players =========--------
 	std::srand((unsigned int)std::time(0));
 	int shipSizes[SHIP_COUNT] = { 3, 4, 5, 6 };
-	char shipSymbols[SHIP_COUNT];
+
+	char shipChars[SHIP_COUNT];
 	for (int i = 0; i < SHIP_COUNT; ++i) {
-		shipSymbols[i] = '0' + shipSizes[i]; //if only static_cast<> :(
+		shipChars[i] = '0' + shipSizes[i];
 	}
 
-	//Placing ships for Player 1
+	//--------========= Place Ships for Player 1 =========--------
 	for (int i = 0; i < 4; i++) {
 		int currentShipSize = shipSizes[i];
 		bool placed = false;
@@ -47,10 +61,10 @@ int main() {
 		while (!placed && attempts < 9999) {
 			attempts++;
 
-			//Check for Horizontal or Vertical side first
-			int dir = std::rand() % 2;
-			int row, col = 0;
-			if (dir == 0) {
+			int orientation = std::rand() % 2;
+			int row = 0;
+			int col = 0;
+			if (orientation == 0) {
 				row = std::rand() % BOARD_SIZE;
 				col = std::rand() % (BOARD_SIZE - currentShipSize + 1);
 			}
@@ -59,43 +73,41 @@ int main() {
 				col = std::rand() % BOARD_SIZE;
 			}
 
-			//Check if is able to place sentire boat 
 			bool canPlace = true;
 			for (int j = 0; j < currentShipSize; j++) {
-				int r = (dir == 1) ? row + j : row;
-				int c = (dir == 1) ? col : col + j;
+				int r = (orientation == 1) ? row + j : row;
+				int c = (orientation == 1) ? col : col + j;
 
-				if (boardPlayer1[r][c] != WATER) {
+				if (hiddenBoardP1[r][c] != WATER_CELL) {
 					canPlace = false;
 					break;
 				}
 			}
 
-			//if all are free place it:
 			if (canPlace) {
 				for (int j = 0; j < currentShipSize; j++) {
-					int r = (dir == 1) ? row + j : row;
-					int c = (dir == 1) ? col : col + j;
-					boardPlayer1[r][c] = shipSymbols[i];
+					int r = (orientation == 1) ? row + j : row;
+					int c = (orientation == 1) ? col : col + j;
+					hiddenBoardP1[r][c] = shipChars[i];
 				}
 				placed = true;
 			}
 		}
 	}
 
-	//placplayer 2
+	//--------========= Place Ships for Player 2 =========--------
 	for (int i = 0; i < 4; i++) {
 		int currentShipSize = shipSizes[i];
 		bool placed = false;
 		int attempts = 0;
 
-		while (!placed && attempts < 9999) {
+		while (!placed && attempts < MAX_PLACEMENT_ATTEMPTS) {
 			attempts++;
 
-			//Check for Horizontal or Vertical side first
-			int dir = std::rand() % 2;
-			int row, col = 0;
-			if (dir == 0) {
+			int orientation = std::rand() % 2;
+			int row = 0;
+			int col = 0;
+			if (orientation == 0) {
 				row = std::rand() % BOARD_SIZE;
 				col = std::rand() % (BOARD_SIZE - currentShipSize + 1);
 			}
@@ -104,24 +116,22 @@ int main() {
 				col = std::rand() % BOARD_SIZE;
 			}
 
-			//Check if is able to place sentire boat 
 			bool canPlace = true;
 			for (int j = 0; j < currentShipSize; j++) {
-				int r = (dir == 1) ? row + j : row;
-				int c = (dir == 1) ? col : col + j;
+				int r = (orientation == 1) ? row + j : row;
+				int c = (orientation == 1) ? col : col + j;
 
-				if (boardPlayer2[r][c] != WATER) {
+				if (hiddenBoardP2[r][c] != WATER_CELL) {
 					canPlace = false;
 					break;
 				}
 			}
 
-			//if all are free place it:
 			if (canPlace) {
 				for (int j = 0; j < currentShipSize; j++) {
-					int r = (dir == 1) ? row + j : row;
-					int c = (dir == 1) ? col : col + j;
-					boardPlayer2[r][c] = shipSymbols[i];
+					int r = (orientation == 1) ? row + j : row;
+					int c = (orientation == 1) ? col : col + j;
+					hiddenBoardP2[r][c] = shipChars[i];
 				}
 				placed = true;
 			}
@@ -129,20 +139,19 @@ int main() {
 	}
 
 	bool gameOver = false;
-	int currentPlayer = 0;
-	bool whenHitGiveAnotherTurn = false;
-	bool showBoatsOnFirstRound = true;
+	int currentPlayer = 1;
+	bool extraTurnOnHit = false;
 
-	//============= View boats ================
-	std::cout << "Jugador 1: " << std::endl;
+	//--------========= Show full board (including ships) for Player 1 =========--------
+	std::cout << "Player 1: " << std::endl;
 	for (int i = 0; i < BOARD_SIZE; i++) {
-		std::cout << i; //type casting
+		std::cout << i;
 		std::cout << ' ';
 	}
 	std::cout << std::endl;
 	for (int i = 0; i < BOARD_SIZE; ++i) {
 		for (int j = 0; j < BOARD_SIZE; ++j) {
-			std::cout << boardPlayer1[i][j] << ' ';
+			std::cout << hiddenBoardP1[i][j] << ' ';
 		}
 		std::cout << i;
 		std::cout << '\n';
@@ -150,52 +159,52 @@ int main() {
 	std::cout << "----------------------\n";
 	std::cout << std::endl;
 
-	std::cout << "PRESS ENTER TO CLEAR THE BOARD";
-	std::string temp;
-	std::getline(std::cin, temp);
+	std::cout << "Press Enter to clear the board.";
+	std::string pauseLine;
+	std::getline(std::cin, pauseLine);
 	system("cls");
-	std::cout << "PRESS ENTER TO SEE THE NEXT PLAYERS BOARD";
-	std::getline(std::cin, temp);
+	std::cout << "Press Enter to continue.";
+	std::getline(std::cin, pauseLine);
 	std::cout << std::endl;
 
-	// print board 2
-	std::cout << "Jugador 2: " << std::endl;
+	//--------========= Show full board (including ships) for Player 2 =========--------
+	std::cout << "Player 2: " << std::endl;
 	for (int i = 0; i < BOARD_SIZE; i++) {
-		std::cout << i; //type casting
+		std::cout << i;
 		std::cout << ' ';
 	}
 	std::cout << std::endl;
 	for (int i = 0; i < BOARD_SIZE; ++i) {
 		for (int j = 0; j < BOARD_SIZE; ++j) {
-			std::cout << boardPlayer2[i][j] << ' ';
+			std::cout << hiddenBoardP2[i][j] << ' ';
 		}
 		std::cout << i;
 		std::cout << '\n';
 	}
 	std::cout << "----------------------\n";
 	std::cout << std::endl;
-	std::cout << "PRESS ENTER START THE GAME!!!";
-	std::getline(std::cin, temp);
+	std::cout << "Press Enter to start the game.";
+	std::getline(std::cin, pauseLine);
 
 	while (!gameOver) {
 		system("cls");
-		if (!whenHitGiveAnotherTurn) {
+		if (!extraTurnOnHit) {
 			currentPlayer = (currentPlayer % 2) + 1;
 		}
 		else {
-			whenHitGiveAnotherTurn = false;
+			extraTurnOnHit = false;
 		}
 
-		//=== print board 1
-		std::cout << "Jugador 1: " << std::endl;
+		//--------========= Print Boards =========--------
+		std::cout << "Player 1: " << std::endl;
 		for (int i = 0; i < BOARD_SIZE; i++) {
-			std::cout << i; //type casting
+			std::cout << i;
 			std::cout << ' ';
 		}
 		std::cout << std::endl;
 		for (int i = 0; i < BOARD_SIZE; ++i) {
 			for (int j = 0; j < BOARD_SIZE; ++j) {
-				std::cout << visibleBoardPlayer1[i][j] << ' ';
+				std::cout << viewBoardP1[i][j] << ' ';
 			}
 			std::cout << i;
 			std::cout << '\n';
@@ -203,65 +212,75 @@ int main() {
 		std::cout << "----------------------\n";
 		std::cout << std::endl;
 
-		// print board 2
-		std::cout << "Jugador 2: " << std::endl;
+		std::cout << "Player 2: " << std::endl;
 		for (int i = 0; i < BOARD_SIZE; i++) {
-			std::cout << i; //type casting
+			std::cout << i;
 			std::cout << ' ';
 		}
 		std::cout << std::endl;
 		for (int i = 0; i < BOARD_SIZE; ++i) {
 			for (int j = 0; j < BOARD_SIZE; ++j) {
-				std::cout << visibleBoardPlayer2[i][j] << ' ';
+				std::cout << viewBoardP2[i][j] << ' ';
 			}
 			std::cout << i;
 			std::cout << '\n';
 		}
 		std::cout << "----------------------\n";
 
-
-		//============ Input Handeling ========================================
-		char inputs[50];
-		int inputColomn = 0;
+		//--------========= Input Handling =========--------
+		char rawCoords[2];
+		int inputColumn = 0;
 		int inputRow = 0;
 		bool validInput = false;
 
 		while (!validInput) {
-			std::cout << "Player " << currentPlayer << " enter row and column: ";
-			if (std::cin >> inputs) {
-				inputColomn = (int)inputs[0] - '0';
-				inputRow = (int)inputs[1] - '0';
+			std::cout << "Player " << currentPlayer << " – enter row and column (0‑9): ";
 
-				if (inputColomn < 0 || inputColomn > BOARD_SIZE - 1 || inputRow < 0 || inputRow > BOARD_SIZE - 1) {
-					std::cout << "Input out of bounds, try again" << std::endl;
+			if (std::cin >> rawCoords) {
+				inputColumn = (int)rawCoords[0] - '0';
+				inputRow = (int)rawCoords[1] - '0';
+
+				if (inputColumn < 0 || inputColumn > BOARD_SIZE - 1 || inputRow < 0 || inputRow > BOARD_SIZE - 1) {
+					std::cout << "Input out of bounds. INVALID. Pleas try again" << std::endl;
 					continue;
 				}
 				validInput = true;
 			}
 			else {
-				std::cout << "Please enter two numbers separated by whitespace.\n";
+				std::cout << "Please enter two numbers\n";
 			}
 		}
 
-		//=========== check if tile that is selected is a ship and shoot???
-		std::cout << "You entered column " << inputColomn << " and row " << inputRow << ".\n";
+		//--------========= Resolve shot and update boards =========--------
+		std::cout << "You entered column " << inputColumn << " and row " << inputRow << ".\n";
 		if (currentPlayer == 2) {
-			switch (boardPlayer1[inputRow][inputColomn]) {
+			switch (hiddenBoardP1[inputRow][inputColumn]) {
 				case '3':
 				case '4':
 				case '5':
 				case '6': {
-					visibleBoardPlayer1[inputRow][inputColomn] = HIT_MARK;
-					whenHitGiveAnotherTurn = !whenHitGiveAnotherTurn;
+					if (viewBoardP1[inputRow][inputColumn] != WATER_CELL) {
+						std::cout << "That square was already chosen. Pick another.\n";
+						continue;
+					}
+					viewBoardP1[inputRow][inputColumn] = HIT_MARK;
+					hiddenBoardP1[inputRow][inputColumn] = HIT_MARK;
+					
+					extraTurnOnHit = true;
 					break;
 				}
-				case WATER: {
-					visibleBoardPlayer1[inputRow][inputColomn] = MISS_MARK;
-					whenHitGiveAnotherTurn = false;
+				case WATER_CELL: {
+					if (viewBoardP2[inputRow][inputColumn] != WATER_CELL) {
+						std::cout << "That square was already chosen. Pick another.\n";
+						continue;
+					}
+
+					viewBoardP1[inputRow][inputColumn] = MISS_MARK;
+					extraTurnOnHit = false;
 					break;
 				}
 				default: {
-					if (visibleBoardPlayer1[inputRow][inputColomn] == HIT_MARK || visibleBoardPlayer1[inputRow][inputColomn] == MISS_MARK) {
+					if (viewBoardP1[inputRow][inputColumn] == HIT_MARK || viewBoardP1[inputRow][inputColumn] == MISS_MARK) {
 						std::cout << "This spot was already choosen once" << std::endl;
 						break;
 					}
@@ -271,22 +290,33 @@ int main() {
 		}
 
 		else if (currentPlayer == 1) {
-			switch (boardPlayer2[inputRow][inputColomn]) {
+			switch (hiddenBoardP2[inputRow][inputColumn]) {
 				case '3':
 				case '4':
 				case '5':
 				case '6': {
-					visibleBoardPlayer2[inputRow][inputColomn] = HIT_MARK;
-					whenHitGiveAnotherTurn = !whenHitGiveAnotherTurn;
+					if (viewBoardP2[inputRow][inputColumn] != WATER_CELL) {
+						std::cout << "That square was already chosen. Pick another.\n";
+						continue;
+					}
+					viewBoardP2[inputRow][inputColumn] = HIT_MARK;
+					hiddenBoardP2[inputRow][inputColumn] = HIT_MARK;
+					
+					extraTurnOnHit = true;
 					break;
 				}
-				case WATER: {
-					visibleBoardPlayer2[inputRow][inputColomn] = MISS_MARK;
-					whenHitGiveAnotherTurn = false;
+				case WATER_CELL: {
+					if (viewBoardP2[inputRow][inputColumn] != WATER_CELL) {
+						std::cout << "That square was already chosen. Pick another.\n";
+						continue;
+					}
+
+					viewBoardP2[inputRow][inputColumn] = MISS_MARK;
+					extraTurnOnHit = false;
 					break;
 				}
 				default: {
-					if (visibleBoardPlayer2[inputRow][inputColomn] == HIT_MARK || visibleBoardPlayer2[inputRow][inputColomn] == MISS_MARK) {
+					if (viewBoardP2[inputRow][inputColumn] == HIT_MARK || viewBoardP2[inputRow][inputColumn] == MISS_MARK) {
 						std::cout << "This spot was already choosen once" << std::endl;
 						break;
 					}
@@ -295,34 +325,34 @@ int main() {
 			}
 		}
 
-		// ======== check how many ships are alive or not
-		int remainingShipsPlayer1 = 0;
-		int remainingShipsPlayer2 = 0;
+		//--------========= Count remaining ships for each player =========--------
+		int p1ShipsAlive = 0;
+		int p2ShipsAlive = 0;
 
-		for (int s = 0; s < SHIP_COUNT; ++s) {
-			bool alive1 = false, alive2 = false;
+		for (int shipIdx = 0; shipIdx < SHIP_COUNT; ++shipIdx) {
+			bool p1Alive = false, p2Alive = false;
 
-			for (int i = 0; i < BOARD_SIZE && !(alive1 && alive2); ++i) {
-				for (int j = 0; j < BOARD_SIZE && !(alive1 && alive2); ++j) {
-					if (boardPlayer1[i][j] == shipSymbols[s]) alive1 = true;
-					if (boardPlayer2[i][j] == shipSymbols[s]) alive2 = true;
+			for (int i = 0; i < BOARD_SIZE && !(p1Alive && p2Alive); ++i) {
+				for (int j = 0; j < BOARD_SIZE && !(p1Alive && p2Alive); ++j) {
+					if (hiddenBoardP1[i][j] == shipChars[shipIdx]) p1Alive = true;
+					if (hiddenBoardP2[i][j] == shipChars[shipIdx]) p2Alive = true;
 				}
 			}
 
-			if (alive1) ++remainingShipsPlayer1;
-			if (alive2) ++remainingShipsPlayer2;
-			if (!alive1 && !alive2) {
-				std::cout << "Player " << currentPlayer << " destroyed ship " << shipSymbols[s] << "!\n";
+			if (p1Alive) ++p1ShipsAlive;
+			if (p2Alive) ++p2ShipsAlive;
+			if (!p1Alive && !p2Alive) {
+				std::cout << "Player " << currentPlayer << " destroyed ship " << shipChars[shipIdx] << "!\n";
 			}
 		}
 
-		//================ win if there are no remaaining ships
-		if (remainingShipsPlayer1 == 0) {
+		//--------========= Win and Lose condition =========--------
+		if (p1ShipsAlive == 0) {
 			gameOver = true;
 			std::cout << "\n*** Player 2 wins! ***\n";
 			break;
 		}
-		if (remainingShipsPlayer2 == 0) {
+		if (p2ShipsAlive == 0) {
 			gameOver = true;
 			std::cout << "\n*** Player 1 wins! ***\n";
 			break;
