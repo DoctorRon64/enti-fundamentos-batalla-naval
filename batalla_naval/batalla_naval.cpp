@@ -1,16 +1,4 @@
-﻿/*****************************************************************************************
- *  Battleship – Console version (C++20)
- *
- *  Author          : Philip de Groot
- *  Date created    : 2025‑10‑18
- *  Description     : Two‑player console Battleship game.  Boards are 10×10, ships of
- *                    lengths 3, 4, 5 and 6 are placed randomly.  Players alternate
- *                    entering row/column coordinates; hits are marked with 'O',
- *                    misses with 'X'.  The first player to sink all opponent ships
- *                    wins.
- *****************************************************************************************/
-
-#include <iostream>
+﻿#include <iostream>
 #include <cstdlib>
 #include <ctime>
 #include <limits>
@@ -32,6 +20,10 @@ int main() {
 	char hiddenBoardP2[BOARD_SIZE][BOARD_SIZE];
 	char viewBoardP1[BOARD_SIZE][BOARD_SIZE];
 	char viewBoardP2[BOARD_SIZE][BOARD_SIZE];
+
+	bool gameOver = false;
+	bool extraTurnOnHit = false;
+	int currentPlayer = 0;
 
 	//--------========= Initialize boards =========--------
 	for (int i = 0; i < BOARD_SIZE; ++i) {
@@ -138,14 +130,12 @@ int main() {
 		}
 	}
 
-	bool gameOver = false;
-	int currentPlayer = 1;
-	bool extraTurnOnHit = false;
-
 	//--------========= Show full board (including ships) for Player 1 =========--------
-	std::cout << "Player 1: " << std::endl;
+	std::string pauseLine;
+	std::cout << "Press Enter to show the board of Player 1." << std::endl;
+	std::getline(std::cin, pauseLine);
 	for (int i = 0; i < BOARD_SIZE; i++) {
-		std::cout << i;
+		std::cout << i + 1;
 		std::cout << ' ';
 	}
 	std::cout << std::endl;
@@ -153,24 +143,21 @@ int main() {
 		for (int j = 0; j < BOARD_SIZE; ++j) {
 			std::cout << hiddenBoardP1[i][j] << ' ';
 		}
-		std::cout << i;
+		std::cout << i + 1;
 		std::cout << '\n';
 	}
 	std::cout << "----------------------\n";
 	std::cout << std::endl;
-
 	std::cout << "Press Enter to clear the board.";
-	std::string pauseLine;
 	std::getline(std::cin, pauseLine);
 	system("cls");
-	std::cout << "Press Enter to continue.";
+	std::cout << "Press Enter to show the board of Player 2.";
 	std::getline(std::cin, pauseLine);
 	std::cout << std::endl;
 
 	//--------========= Show full board (including ships) for Player 2 =========--------
-	std::cout << "Player 2: " << std::endl;
 	for (int i = 0; i < BOARD_SIZE; i++) {
-		std::cout << i;
+		std::cout << i + 1;
 		std::cout << ' ';
 	}
 	std::cout << std::endl;
@@ -178,7 +165,7 @@ int main() {
 		for (int j = 0; j < BOARD_SIZE; ++j) {
 			std::cout << hiddenBoardP2[i][j] << ' ';
 		}
-		std::cout << i;
+		std::cout << i + 1;
 		std::cout << '\n';
 	}
 	std::cout << "----------------------\n";
@@ -190,9 +177,6 @@ int main() {
 		system("cls");
 		if (!extraTurnOnHit) {
 			currentPlayer = (currentPlayer % 2) + 1;
-		}
-		else {
-			extraTurnOnHit = false;
 		}
 
 		//--------========= Print Boards =========--------
@@ -214,7 +198,7 @@ int main() {
 
 		std::cout << "Player 2: " << std::endl;
 		for (int i = 0; i < BOARD_SIZE; i++) {
-			std::cout << i;
+			std::cout << i + 1;
 			std::cout << ' ';
 		}
 		std::cout << std::endl;
@@ -222,10 +206,11 @@ int main() {
 			for (int j = 0; j < BOARD_SIZE; ++j) {
 				std::cout << viewBoardP2[i][j] << ' ';
 			}
-			std::cout << i;
+			std::cout << i + 1;
 			std::cout << '\n';
 		}
 		std::cout << "----------------------\n";
+		std::cout << std::endl;
 
 		//--------========= Input Handling =========--------
 		char rawCoords[2];
@@ -233,8 +218,18 @@ int main() {
 		int inputRow = 0;
 		bool validInput = false;
 
+		//TODO
+		//If first number is 0 break
+		//if first number is 1 check if second number is 0 and put in
+		//if first number is 2-8 make that inputColumn
+
 		while (!validInput) {
-			std::cout << "Player " << currentPlayer << " – enter row and column (0‑9): ";
+			std::cout << "Player " << currentPlayer;
+			if (extraTurnOnHit) {
+				std::cout << " EXTRA";
+			}
+			std::cout << " turn" << std::endl;
+			std::cout << "Enter row and column [1/10][1/10]: ";
 
 			if (std::cin >> rawCoords) {
 				inputColumn = (int)rawCoords[0] - '0';
@@ -251,77 +246,75 @@ int main() {
 			}
 		}
 
+		if (extraTurnOnHit) {
+			extraTurnOnHit = false;
+		}
 		//--------========= Resolve shot and update boards =========--------
 		std::cout << "You entered column " << inputColumn << " and row " << inputRow << ".\n";
-		if (currentPlayer == 2) {
-			switch (hiddenBoardP1[inputRow][inputColumn]) {
-				case '3':
-				case '4':
-				case '5':
-				case '6': {
-					if (viewBoardP1[inputRow][inputColumn] != WATER_CELL) {
-						std::cout << "That square was already chosen. Pick another.\n";
-						continue;
-					}
-					viewBoardP1[inputRow][inputColumn] = HIT_MARK;
-					hiddenBoardP1[inputRow][inputColumn] = HIT_MARK;
-					
-					extraTurnOnHit = true;
+		if (currentPlayer == 1) {
+			switch (hiddenBoardP2[inputRow][inputColumn]) {
+			case '3':
+			case '4':
+			case '5':
+			case '6': {
+				if (viewBoardP2[inputRow][inputColumn] != WATER_CELL) {
+					std::cout << "That square was already chosen. Pick another.\n";
+					viewBoardP2[inputRow][inputColumn] = hiddenBoardP2[inputRow][inputColumn];
 					break;
 				}
-				case WATER_CELL: {
-					if (viewBoardP2[inputRow][inputColumn] != WATER_CELL) {
-						std::cout << "That square was already chosen. Pick another.\n";
-						continue;
-					}
+				viewBoardP2[inputRow][inputColumn] = HIT_MARK;
+				hiddenBoardP2[inputRow][inputColumn] = HIT_MARK;
 
-					viewBoardP1[inputRow][inputColumn] = MISS_MARK;
-					extraTurnOnHit = false;
+				extraTurnOnHit = true;
+				break;
+			}
+			case WATER_CELL: {
+				viewBoardP2[inputRow][inputColumn] = MISS_MARK;
+				hiddenBoardP2[inputRow][inputColumn] = MISS_MARK;
+				extraTurnOnHit = false;
+				break;
+			}
+			default: {
+				if (viewBoardP2[inputRow][inputColumn] == HIT_MARK || viewBoardP2[inputRow][inputColumn] == MISS_MARK) {
+					std::cout << "This spot was already choosen once" << std::endl;
+					viewBoardP2[inputRow][inputColumn] = hiddenBoardP2[inputRow][inputColumn];
 					break;
 				}
-				default: {
-					if (viewBoardP1[inputRow][inputColumn] == HIT_MARK || viewBoardP1[inputRow][inputColumn] == MISS_MARK) {
-						std::cout << "This spot was already choosen once" << std::endl;
-						break;
-					}
-					break;
-				}
+				break;
+			}
 			}
 		}
+		else if (currentPlayer == 2) {
+			switch (hiddenBoardP1[inputRow][inputColumn]) {
+			case '3':
+			case '4':
+			case '5':
+			case '6': {
+				if (viewBoardP1[inputRow][inputColumn] != WATER_CELL) {
+					std::cout << "That square was already chosen. Pick another.\n";
+					viewBoardP1[inputRow][inputColumn] = hiddenBoardP1[inputRow][inputColumn];
+					break;
+				}
+				viewBoardP1[inputRow][inputColumn] = HIT_MARK;
+				hiddenBoardP1[inputRow][inputColumn] = HIT_MARK;
 
-		else if (currentPlayer == 1) {
-			switch (hiddenBoardP2[inputRow][inputColumn]) {
-				case '3':
-				case '4':
-				case '5':
-				case '6': {
-					if (viewBoardP2[inputRow][inputColumn] != WATER_CELL) {
-						std::cout << "That square was already chosen. Pick another.\n";
-						continue;
-					}
-					viewBoardP2[inputRow][inputColumn] = HIT_MARK;
-					hiddenBoardP2[inputRow][inputColumn] = HIT_MARK;
-					
-					extraTurnOnHit = true;
+				extraTurnOnHit = true;
+				break;
+			}
+			case WATER_CELL: {
+				viewBoardP1[inputRow][inputColumn] = MISS_MARK;
+				hiddenBoardP1[inputRow][inputColumn] = MISS_MARK;
+				extraTurnOnHit = false;
+				break;
+			}
+			default: {
+				if (viewBoardP1[inputRow][inputColumn] == HIT_MARK || viewBoardP1[inputRow][inputColumn] == MISS_MARK) {
+					std::cout << "This spot was already choosen once" << std::endl;
+					viewBoardP1[inputRow][inputColumn] = hiddenBoardP1[inputRow][inputColumn];
 					break;
 				}
-				case WATER_CELL: {
-					if (viewBoardP2[inputRow][inputColumn] != WATER_CELL) {
-						std::cout << "That square was already chosen. Pick another.\n";
-						continue;
-					}
-
-					viewBoardP2[inputRow][inputColumn] = MISS_MARK;
-					extraTurnOnHit = false;
-					break;
-				}
-				default: {
-					if (viewBoardP2[inputRow][inputColumn] == HIT_MARK || viewBoardP2[inputRow][inputColumn] == MISS_MARK) {
-						std::cout << "This spot was already choosen once" << std::endl;
-						break;
-					}
-					break;
-				}
+				break;
+			}
 			}
 		}
 
