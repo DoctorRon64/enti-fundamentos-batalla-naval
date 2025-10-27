@@ -213,15 +213,10 @@ int main() {
 		std::cout << std::endl;
 
 		//--------========= Input Handling =========--------
-		char rawCoords[2];
+		char input[5];
 		int inputColumn = 0;
 		int inputRow = 0;
 		bool validInput = false;
-
-		//TODO
-		//If first number is 0 break
-		//if first number is 1 check if second number is 0 and put in
-		//if first number is 2-8 make that inputColumn
 
 		while (!validInput) {
 			std::cout << "Player " << currentPlayer;
@@ -229,20 +224,38 @@ int main() {
 				std::cout << " EXTRA";
 			}
 			std::cout << " turn" << std::endl;
-			std::cout << "Enter row and column [1/10][1/10]: ";
 
-			if (std::cin >> rawCoords) {
-				inputColumn = (int)rawCoords[0] - '0';
-				inputRow = (int)rawCoords[1] - '0';
+			std::cout << "Enter row [1/10]: ";
+			if (std::cin >> input) {
+				inputRow = input[0] - '0';
 
-				if (inputColumn < 0 || inputColumn > BOARD_SIZE - 1 || inputRow < 0 || inputRow > BOARD_SIZE - 1) {
-					std::cout << "Input out of bounds. INVALID. Pleas try again" << std::endl;
+				if (inputRow < 1 || inputRow > 10) {
+					std::cout << "Input out of bounds. Please enter a number between 1 and 10." << std::endl;
 					continue;
 				}
+			}
+			else {
+				std::cout << "Invalid input. Please enter a number." << std::endl;
+				continue;
+			}
+
+			std::cout << "Enter column [1/10]: ";
+			if (std::cin >> input) {
+				inputColumn = input[0] - '0';
+
+				if (inputColumn < 1 || inputColumn > 10) {
+					std::cout << "Input out of bounds. Please enter a number between 1 and 10." << std::endl;
+					continue;
+				}
+
+				inputRow -= 1;
+				inputColumn -= 1;
+
 				validInput = true;
 			}
 			else {
-				std::cout << "Please enter two numbers\n";
+				std::cout << "Invalid input. Please enter a number." << std::endl;
+				continue;
 			}
 		}
 
