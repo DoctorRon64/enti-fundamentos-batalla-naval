@@ -15,7 +15,7 @@ int main() {
 	const char WATER_CELL = '~';
 	const char HIT_MARK = 'O';
 	const char MISS_MARK = 'X';
-	const int MAX_PLACEMENT_ATTEMPTS = 10000;
+	const int MAX_PLACEMENT_ATTEMPTS = 1000;
 
 	char hiddenBoardP1[BOARD_SIZE][BOARD_SIZE];
 	char hiddenBoardP2[BOARD_SIZE][BOARD_SIZE];
@@ -23,8 +23,8 @@ int main() {
 	char viewBoardP2[BOARD_SIZE][BOARD_SIZE];
 
 	bool gameOver = false;
-	bool extraTurnOnHit = false;
-	bool repeatTurn = false;
+	bool grantExtraTurn = false;
+	bool stayOnTurn = false;
 	int currentPlayer = 0;
 
 	std::srand((unsigned int)std::time(0));
@@ -177,10 +177,10 @@ int main() {
 
 	while(!gameOver) {
 		system("cls");
-		if(!extraTurnOnHit && !repeatTurn) {
+		if(!grantExtraTurn && !stayOnTurn) {
 			currentPlayer = (currentPlayer % 2) + 1;
 		}
-		repeatTurn = false;
+		stayOnTurn = false;
 
 		//--------========= Print Boards =========--------
 		std::cout << "Player 1: " << std::endl;
@@ -216,35 +216,37 @@ int main() {
 		std::cout << std::endl;
 
 		//--------========= Input Handling =========--------
-		char rawInput[5];
-		int inputColomn[2];
-		int inputRow[2];
-		int Row;
-		int Column;
 		bool validInput = false;
+		char rawInput[5];
+
+		int inputColumn[2];
+		int inputRow[2];
+
+		int selectedRow;
+		int selectedColumn;
 
 		while(!validInput) {
 			std::cout << "Player " << currentPlayer;
-			if(extraTurnOnHit) std::cout << " EXTRA";
+			if(grantExtraTurn) std::cout << " EXTRA";
 			std::cout << " turn, ";
 
 			std::cout << "enter column [1/10]: ";
 			if(std::cin >> rawInput) {
-				inputColomn[0] = rawInput[0] - '0';
-				inputColomn[1] = rawInput[1] - '0';
+				inputColumn[0] = rawInput[0] - '0';
+				inputColumn[1] = rawInput[1] - '0';
 
-				if(inputColomn[0] < 1 || inputColomn[0] > 10) {
+				if(inputColumn[0] < 1 || inputColumn[0] > 10) {
 					std::cout << "Input out of bounds. Please enter a number between 1 and 10." << std::endl;
 					continue;
 				}
 
-				if(inputColomn[0] == 1 && inputColomn[1] == 0) {
-					Column = 9;
+				if(inputColumn[0] == 1 && inputColumn[1] == 0) {
+					selectedColumn = 9;
 					std::cout << "You entered column 10, ";
 				}
 				else {
-					Column = inputColomn[0] - 1;
-					std::cout << "You entered column " << inputColomn[0] << ", ";
+					selectedColumn = inputColumn[0] - 1;
+					std::cout << "You entered column " << inputColumn[0] << ", ";
 				}
 			}
 			else {
@@ -263,12 +265,12 @@ int main() {
 				}
 
 				if(inputRow[0] == 1 && inputRow[1] == 0) {
-					Row = 9;
+					selectedRow = 9;
 					std::cout << "You entered row 10" << std::endl;
 					validInput = true;
 				}
 				else {
-					Row = inputRow[0] - 1;
+					selectedRow = inputRow[0] - 1;
 					std::cout << "You entered row " << inputRow[0] << std::endl;
 					validInput = true;
 				}
@@ -279,52 +281,52 @@ int main() {
 			}
 		}
 
-		if(extraTurnOnHit) {
-			extraTurnOnHit = false;
+		if(grantExtraTurn) {
+			grantExtraTurn = false;
 		}
 
 		//--------========= Resolve shot and update boards =========--------
-		std::cout << "You entered column " << Column << " and row " << Row << ".\n";
+		std::cout << "You entered column " << selectedColumn << " and row " << selectedRow << ".\n";
 		if(currentPlayer == 1) {
-			char target = hiddenBoardP2[Row][Column];
-			if(viewBoardP2[Row][Column] == WATER_CELL) {
-				if(target != WATER_CELL) {
-					viewBoardP2[Row][Column] = HIT_MARK;
-					hiddenBoardP2[Row][Column] = HIT_MARK;
+			char targetCell = hiddenBoardP2[selectedRow][selectedColumn];
+			if(viewBoardP2[selectedRow][selectedColumn] == WATER_CELL) {
+				if(targetCell != WATER_CELL) {
+					viewBoardP2[selectedRow][selectedColumn] = HIT_MARK;
+					hiddenBoardP2[selectedRow][selectedColumn] = HIT_MARK;
 					std::cout << "Hit!" << std::endl;
-					extraTurnOnHit = true;
+					grantExtraTurn = true;
 				}
 				else {
-					viewBoardP2[Row][Column] = MISS_MARK;
-					hiddenBoardP2[Row][Column] = MISS_MARK;
+					viewBoardP2[selectedRow][selectedColumn] = MISS_MARK;
+					hiddenBoardP2[selectedRow][selectedColumn] = MISS_MARK;
 					std::cout << "Miss!" << std::endl;
-					extraTurnOnHit = false;
+					grantExtraTurn = false;
 				}
 			}
 			else {
 				std::cout << "You already shot there! Pick another." << std::endl;
-				repeatTurn = true;
+				stayOnTurn = true;
 			}
 		}
 		else if(currentPlayer == 2) {
-			char target = hiddenBoardP1[Row][Column];
-			if(viewBoardP1[Row][Column] == WATER_CELL) {
-				if(target != WATER_CELL) {
-					viewBoardP1[Row][Column] = HIT_MARK;
-					hiddenBoardP1[Row][Column] = HIT_MARK;
+			char targetCell = hiddenBoardP1[selectedRow][selectedColumn];
+			if(viewBoardP1[selectedRow][selectedColumn] == WATER_CELL) {
+				if(targetCell != WATER_CELL) {
+					viewBoardP1[selectedRow][selectedColumn] = HIT_MARK;
+					hiddenBoardP1[selectedRow][selectedColumn] = HIT_MARK;
 					std::cout << "Hit!" << std::endl;
-					extraTurnOnHit = true;
+					grantExtraTurn = true;
 				}
 				else {
-					viewBoardP1[Row][Column] = MISS_MARK;
-					hiddenBoardP1[Row][Column] = MISS_MARK;
+					viewBoardP1[selectedRow][selectedColumn] = MISS_MARK;
+					hiddenBoardP1[selectedRow][selectedColumn] = MISS_MARK;
 					std::cout << "Miss!" << std::endl;
-					extraTurnOnHit = false;
+					grantExtraTurn = false;
 				}
 			}
 			else {
 				std::cout << "You already shot there! Pick another." << std::endl;
-				repeatTurn = true;
+				stayOnTurn = true;
 			}
 		}
 
@@ -332,20 +334,20 @@ int main() {
 		int p1ShipsAlive = 0;
 		int p2ShipsAlive = 0;
 
-		for(int shipIdx = 0; shipIdx < SHIP_COUNT; ++shipIdx) {
+		for(int shipId = 0; shipId < SHIP_COUNT; ++shipId) {
 			bool p1Alive = false, p2Alive = false;
 
 			for(int i = 0; i < BOARD_SIZE && !(p1Alive && p2Alive); ++i) {
 				for(int j = 0; j < BOARD_SIZE && !(p1Alive && p2Alive); ++j) {
-					if(hiddenBoardP1[i][j] == shipChars[shipIdx]) p1Alive = true;
-					if(hiddenBoardP2[i][j] == shipChars[shipIdx]) p2Alive = true;
+					if(hiddenBoardP1[i][j] == shipChars[shipId]) p1Alive = true;
+					if(hiddenBoardP2[i][j] == shipChars[shipId]) p2Alive = true;
 				}
 			}
 
 			if(p1Alive) ++p1ShipsAlive;
 			if(p2Alive) ++p2ShipsAlive;
 			if(!p1Alive && !p2Alive) {
-				std::cout << "Player " << currentPlayer << " destroyed ship " << shipChars[shipIdx] << "!\n";
+				std::cout << "Player " << currentPlayer << " destroyed ship " << shipChars[shipId] << "!\n";
 			}
 		}
 
