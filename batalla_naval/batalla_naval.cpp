@@ -24,6 +24,7 @@ int main() {
 
 	bool gameOver = false;
 	bool extraTurnOnHit = false;
+	bool repeatTurn = false;
 	int currentPlayer = 0;
 
 	std::srand((unsigned int)std::time(0));
@@ -176,9 +177,10 @@ int main() {
 
 	while(!gameOver) {
 		system("cls");
-		if(!extraTurnOnHit) {
+		if(!extraTurnOnHit && !repeatTurn) {
 			currentPlayer = (currentPlayer % 2) + 1;
 		}
+		repeatTurn = false;
 
 		//--------========= Print Boards =========--------
 		std::cout << "Player 1: " << std::endl;
@@ -280,6 +282,7 @@ int main() {
 		if(extraTurnOnHit) {
 			extraTurnOnHit = false;
 		}
+
 		//--------========= Resolve shot and update boards =========--------
 		std::cout << "You entered column " << Column << " and row " << Row << ".\n";
 		if(currentPlayer == 1) {
@@ -300,6 +303,7 @@ int main() {
 			}
 			else {
 				std::cout << "You already shot there! Pick another." << std::endl;
+				repeatTurn = true;
 			}
 		}
 		else if(currentPlayer == 2) {
@@ -320,6 +324,7 @@ int main() {
 			}
 			else {
 				std::cout << "You already shot there! Pick another." << std::endl;
+				repeatTurn = true;
 			}
 		}
 
